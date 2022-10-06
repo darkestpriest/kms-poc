@@ -1,0 +1,42 @@
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Runtime: "java11"
+    Timeout: 30
+    MemorySize: 768
+    AutoPublishAlias: live
+    DeploymentPreference:
+      Type: AllAtOnce
+
+Resources:
+  PocFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'poc to test kms'
+      CodeUri: '.'
+      Handler: 'kms.poc.Handler'
+      Environment:
+        Variables:
+          KEY_ID: !Ref ProtectedKey
+
+      Policies:
+        - KMSDecryptPolicy:
+            KeyId: !Ref ProtectedKey
+
+  ProtectedKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'Poc key'
+      Enabled: true
+      KeySpec: 'RSA_2048'
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: key-default-1
+        Statement:
+          - Sid: Allow use of the key
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - 'kms:*'
+            Resource: '*'
